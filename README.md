@@ -1,6 +1,6 @@
 # te
 
-te is a text editor for NItrOS-9 on 6809.  It uses a gap buffer and is currently limited to file < 16K.  te supports the following commands:
+te is a text editor for NitrOS-9 on 6809.  It uses a gap buffer and is currently limited to file < 16K.  te supports the following commands:
 
 ### FILE OPERATIONS:
 
