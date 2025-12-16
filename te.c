@@ -198,16 +198,47 @@ _write_end:
 #define KEY_C_X         24   /* Ctrl+X for CUT */
 #define KEY_C_Z         26   /* Ctrl+Z for UNDO */
 #define KEY_C_Y         25   /* Ctrl+Y for REDO */
-#define KEY_C_1         49   /* Ctrl+1 for single-spacing */
-#define KEY_C_2         50   /* Ctrl+2 for double-spacing */
 #define KEY_ENTER       13
 #define KEY_TAB         9
 
+#ifdef  coco3
+
+#define KEY_C_1         124   /* Ctrl+1 for single-spacing */
+#define KEY_C_2         0   /* Ctrl+2 for double-spacing */
 /* F256 arrow key codes */
 #define KEY_UP          12
 #define KEY_DOWN        10
 #define KEY_LEFT        8
 #define KEY_RIGHT       9
+#define KEY_S_UP        28
+#define KEY_S_DOWN      26
+#define KEY_S_LEFT      24
+#define KEY_S_RIGHT     25
+#define KEY_C_UP        19
+#define KEY_C_DOWN      18
+#define KEY_C_LEFT      16
+#define KEY_C_RIGHT     17
+#define KEY_BS          5
+
+#else
+
+#define KEY_C_1         49   /* Ctrl+1 for single-spacing */
+#define KEY_C_2         50   /* Ctrl+2 for double-spacing */
+/* F256 arrow key codes */
+#define KEY_UP          12
+#define KEY_DOWN        10
+#define KEY_LEFT        8
+#define KEY_RIGHT       9
+#define KEY_S_UP        12
+#define KEY_S_DOWN      10
+#define KEY_S_LEFT      8
+#define KEY_S_RIGHT     9
+#define KEY_C_UP        12
+#define KEY_C_DOWN      10
+#define KEY_C_LEFT      8
+#define KEY_C_RIGHT     9
+#define KEY_BS          8
+#endif
 
 /* Buffer and screen constants */
 #define BUF_SIZE        16384
@@ -358,19 +389,15 @@ rest_chr()
 }
 
 /* Character codes for use in drawing */
-#define CH_TOPLFT  242
-#define CH_TOPRGT  243
+#ifdef coco3
+#define CH_TOPLTC  124
+#define CH_TOPRTC  124
+#define CH_TOPBL   45
+#else
 #define CH_TOPLTC  244
 #define CH_TOPRTC  245
 #define CH_TOPBL   246
-#define CH_SIDEBL  247
-#define CH_BTMLFT  248
-#define CH_BTMRGT  249
-#define CH_SOLID   250
-#define CH_UPARR   251
-#define CH_DNARR   252
-#define CH_LFTARR  253
-#define CH_RGTARR  254
+#endif
 
 /* Undo structure */
 struct UndoEntry {
@@ -924,9 +951,9 @@ init_ed()
         printf("Fatal: Cannot allocate text buffer\n");
         exit(1);
     }
-
+#ifndef coco3
     inst_chr();
-    
+#endif    
     /* Initialize gap buffer */
     init_gap();
     
@@ -1241,30 +1268,30 @@ main_loop()
 
 	    } else if (key_status & SHIFT_BIT){
 	      
-	      if ((key_status & SHIFT_BIT) && (key_status & UPBIT) && key_char == KEY_UP) {
+	      if ((key_status & SHIFT_BIT) && (key_status & UPBIT) && key_char == KEY_S_UP) {
                 ex_up();
-	      } else if ((key_status & SHIFT_BIT) && (key_status & DOWNBIT) && key_char == KEY_DOWN) {
+	      } else if ((key_status & SHIFT_BIT) && (key_status & DOWNBIT) && key_char == KEY_S_DOWN) {
                 ex_down();
-	      } else if ((key_status & SHIFT_BIT) && (key_status & CTRL_BIT) && (key_status & LEFTBIT) && key_char == KEY_LEFT) {
+	      } else if ((key_status & SHIFT_BIT) && (key_status & CTRL_BIT) && (key_status & LEFTBIT) && key_char == KEY_S_LEFT) {
                 ex_wd_left();
-	      } else if ((key_status & SHIFT_BIT) && (key_status & CTRL_BIT) && (key_status & RIGHTBIT) && key_char == KEY_RIGHT) {
+	      } else if ((key_status & SHIFT_BIT) && (key_status & CTRL_BIT) && (key_status & RIGHTBIT) && key_char == KEY_S_RIGHT) {
                 ex_wd_right();		
-	      } else if ((key_status & SHIFT_BIT) && (key_status & LEFTBIT) && key_char == KEY_LEFT) {
+	      } else if ((key_status & SHIFT_BIT) && (key_status & LEFTBIT) && key_char == KEY_S_LEFT) {
                 ex_left();
-	      } else if ((key_status & SHIFT_BIT) && (key_status & RIGHTBIT) && key_char == KEY_RIGHT) {
+	      } else if ((key_status & SHIFT_BIT) && (key_status & RIGHTBIT) && key_char == KEY_S_RIGHT) {
                 ex_right();
 		           /* Shift+Ctrl+Arrow = Word Selection */
 	      }
 
 	    } else if (key_status & CTRL_BIT){
               /* Ctrl+Arrow = Word Navigation */
-              if ((key_status & CTRL_BIT) && (key_status & LEFTBIT) && key_char == KEY_LEFT) {
+              if ((key_status & CTRL_BIT) && (key_status & LEFTBIT) && key_char == KEY_C_LEFT) {
 		word_left();
-	      } else if ((key_status & CTRL_BIT) && (key_status & RIGHTBIT) && key_char == KEY_RIGHT) {
+	      } else if ((key_status & CTRL_BIT) && (key_status & RIGHTBIT) && key_char == KEY_C_RIGHT) {
 		word_right();
-	      } else if ((key_status & CTRL_BIT) && (key_status & UPBIT) && key_char == KEY_UP) {
+	      } else if ((key_status & CTRL_BIT) && (key_status & UPBIT) && key_char == KEY_C_UP) {
 		page_up();
-	      } else if ((key_status & CTRL_BIT) && (key_status & DOWNBIT) && key_char == KEY_DOWN) {
+	      } else if ((key_status & CTRL_BIT) && (key_status & DOWNBIT) && key_char == KEY_C_DOWN) {
 		page_down();
 		
 		/* Ctrl+Letter combinations using F256 hardware detection */
@@ -1275,7 +1302,9 @@ main_loop()
 		  need_status_update = 1;
 		} else {
 		  cleanup_clipboard();
+#ifndef coco3
 		  rest_chr();
+#endif		  
 		  if (buf.text_storage != NULL) {
 		    free(buf.text_storage);
 		  }
@@ -1398,7 +1427,7 @@ main_loop()
 		}
 		need_status_update = 1;
 
-            } else if (key_char == 127 || ((key_char == 8) && !(key_status & LEFTBIT))) {
+            } else if (key_char == 127 || ((key_char == KEY_BS) && !(key_status & LEFTBIT))) {
 	      /* Backspace - handle selection */
 	      if (sel_active()) {
 		del_sel();
