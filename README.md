@@ -57,6 +57,10 @@ te is written in C, and compiled with dcc.  Compile with:
 
 dcc te.c -m=2k
 
+for Color Computer 3:  dcc te.c -m=2K -dcoco3
+
 on some systems you may need to do this:
 
 env -u LD_PRELOAD dcc te.c -m=2k
+
+for Color Computer 3: env -u LD_PRELOAD dcc te.c -m=2k -dcoco3
