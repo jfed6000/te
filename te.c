@@ -186,7 +186,7 @@ _write_end:
 
 
 /* Key definitions with context-aware handling */
-#define KEY_ESC         5
+
 #define KEY_C_C         3    /* Ctrl+C for COPY (no longer force quit) */
 #define KEY_C_S         19
 #define KEY_C_F         6    /* Ctrl+F for find */
@@ -202,9 +202,9 @@ _write_end:
 #define KEY_TAB         9
 
 #ifdef  coco3
-
-#define KEY_C_1         124   /* Ctrl+1 for single-spacing */
-#define KEY_C_2         0   /* Ctrl+2 for double-spacing */
+#define KEY_ESC         177
+#define KEY_C_1         181   /* F1 for single-spacing */
+#define KEY_C_2         182   /* F2 for double-spacing */
 /* F256 arrow key codes */
 #define KEY_UP          12
 #define KEY_DOWN        10
@@ -221,7 +221,7 @@ _write_end:
 #define KEY_BS          5
 
 #else
-
+#define KEY_ESC         5
 #define KEY_C_1         49   /* Ctrl+1 for single-spacing */
 #define KEY_C_2         50   /* Ctrl+2 for double-spacing */
 /* F256 arrow key codes */
@@ -1856,7 +1856,17 @@ draw_stat()
     putchar(0x02);
     putchar(0 + 0x20);
     putchar((status_row + 1) + 0x20);
-    
+#ifdef coco3
+    if (in_search_mode) {
+        printf("Ctrl+F=Find  Enter=Find  F1=Cancel");
+    } else if (in_goto_mode) {
+        printf("Enter line number  Enter=Go  F1=Cancel");
+    } else if (in_find_mode) {
+        printf("Ctrl+F=Find Next  Start typing to exit find mode");
+    } else {
+        printf("Ctrl+H for Help");
+    }
+#else    
     if (in_search_mode) {
         printf("Ctrl+F=Find  Enter=Find  ESC=Cancel");
     } else if (in_goto_mode) {
@@ -1866,7 +1876,7 @@ draw_stat()
     } else {
         printf("Ctrl+H for Help");
     }
-    
+#endif    
     /* Clear to end of help line */
     write_block(1, CLEAR_EOL, 1);
     
@@ -1892,7 +1902,11 @@ struct HelpCmd help_table[] = {
     
     {"EDITING:", "EDIT:", 'H'},
     {"  ^Z              Undo (50 levels)", "^Z=Undo", 'E'},
+#ifdef coco3    
+    {"  Break=Backspace       Delete character before cursor", "Break=Del<", 'E'},
+#else
     {"  Backspace       Delete character before cursor", "BS=Del<", 'E'},
+#endif    
     {"  Delete          Delete character at cursor", "Del=Del>", 'E'},
     {"  Tab             Insert tab character", "Tab=Tab", 'E'},
     {"", "", 'E'},
@@ -1918,8 +1932,13 @@ struct HelpCmd help_table[] = {
     {"", "", 'N'},
     
     {"DISPLAY:", "VIEW:", 'H'},
+#ifdef coco3
+    {"  ^F1              Single-spacing mode", "^F1=Single", 'D'},
+    {"  ^F2              Double-spacing mode", "^F2=Double", 'D'},
+#else    
     {"  ^1              Single-spacing mode", "^1=Single", 'D'},
     {"  ^2              Double-spacing mode", "^2=Double", 'D'},
+#endif
     {"", "", 'D'},
     
     {NULL, NULL, 0}
@@ -2613,7 +2632,7 @@ int key;
             in_find_mode = 1;
         }
         /* Else: blank and no previous search - do nothing, stay in search mode */
-    } else if (key == 127 || key == 8) {  /* Backspace */
+    } else if (key == 127 || key == KEY_BS) {  /* Backspace */
         len = strlen(temp_search_str);
         if (len > 0) {
             temp_search_str[len - 1] = 0;
