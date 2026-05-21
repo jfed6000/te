@@ -7,13 +7,18 @@ on some systems you may need:
 env -u LD_PRELOAD dcc te.c -m=2k
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <sg_codes.h>
 #include <sgstat.h>
 
 struct sgbuf oldstat;
 
-#define SS_OPT 0
+int read(int fd, void *buf, unsigned count);
+void *malloc(unsigned size);
+void free(void *ptr);
+int atoi(const char *s);
+void exit(int status);
 
 /* Line terminator constants */
 #define LF     10    /* $0A - Line Feed (Unix line ending) */
@@ -31,7 +36,7 @@ struct sgbuf oldstat;
 #define PHYS_ROW(lr) (text_start_row + ((lr) * (dbl_space ? 2 : 1)))
 
 /* Call this at editor startup - DISABLE ECHO completely */
-set_raw_mode()
+void set_raw_mode()
 {
     /* Get current settings for stdin (path 0) */
     getstat(SS_OPT, 0, &oldstat);
@@ -46,7 +51,7 @@ set_raw_mode()
 }
 
 /* Call this at editor exit */
-restore_mode()
+void restore_mode()
 {
     /* Restore original settings */
 
@@ -277,7 +282,7 @@ unsigned char oldchars[104];  /* 13*8 = 104 */
 unsigned char *newchars[13];
 
 /* Initialize the character array pointers */
-init_chars()
+void init_chars()
 {
     newchars[0] = topleftbc;
     newchars[1] = toprigtbc;
@@ -341,7 +346,7 @@ _sfc_end:
 }
 
 /* Install custom characters */
-inst_chr()
+int inst_chr()
 {
     int i, j;
     int charnum;
@@ -351,7 +356,7 @@ inst_chr()
     
     /* Save old characters and install new ones */
     charnum = 242;
-    oldptr = oldchars;
+    oldptr = (char *)oldchars;
     
     for (i = 0; i < 13; i++) {
         /* Get old character */
@@ -360,7 +365,7 @@ inst_chr()
         }
         
         /* Set new character */
-        if (setfntch(charnum, newchars[i]) < 0) {
+        if (setfntch(charnum, (char *)newchars[i]) < 0) {
             return -1;
         }
         
@@ -372,14 +377,14 @@ inst_chr()
 }
 
 /* Restore original characters */
-rest_chr()
+void rest_chr()
 {
     int i;
     int charnum;
     char *oldptr;
     
     charnum = 242;
-    oldptr = oldchars;
+    oldptr = (char *)oldchars;
     
     for (i = 0; i < 13; i++) {
         setfntch(charnum, oldptr);
@@ -500,104 +505,109 @@ struct Buffer {
 struct Buffer buf;
 
 /* Function declarations with soft wrap support */
-main();
-init_ed();
-load_file();
-save_file();
-draw_stat();
-main_loop();
-col_adv();
-find_end();
-pos_col();
-move_up();
-move_down();
-move_left();
-move_right();
+int main();
+void init_ed();
+int load_file();
+int save_file();
+void draw_stat();
+void main_loop();
+int col_adv();
+int find_end();
+int pos_col();
+void move_up();
+void move_down();
+void move_left();
+void move_right();
 /* Cursor update helpers */
-calc_col();
-curs_lft();
-curs_rgt();
+int calc_col();
+void curs_lft();
+void curs_rgt();
 /* Enhanced navigation */
-word_left();
-word_right();
-page_up();
-page_down();
-page_curs();
+void word_left();
+void word_right();
+void page_up();
+void page_down();
+void page_curs();
 /* Selection functions */
-ex_left();
-ex_right();
-ex_up();
-ex_down();
-ex_wd_left();
-ex_wd_right();
-sel_all();
-copy_sel();
-del_sel();
+void ex_left();
+void ex_right();
+void ex_up();
+void ex_down();
+void ex_wd_left();
+void ex_wd_right();
+void sel_all();
+void copy_sel();
+void del_sel();
+void paste_clipboard();
 /* Search functions */
-strtsch();
-find_next();
-find_prev();
-end_search();
-start_goto();
-end_goto();
-goto_keys();
+void strtsch();
+void find_next();
+void end_search();
+void start_goto();
+void end_goto();
+void goto_keys();
 /* Existing functions */
-edit_key();
-do_char();
-do_back();
-do_cr_enter();
-do_lf_enter();
-add_undo();
-do_undo();
-get_line();
-line_sta();
-line_end();
-ensure_vis();
-goto_ln();
+void do_char();
+void do_back();
+void do_cr_enter();
+void do_lf_enter();
+void add_undo();
+void do_undo();
+int get_line();
+int line_sta();
+int line_end();
+void ensure_vis();
+void goto_ln();
 /* Update functions */
-update_scr();
-vis_col();
-draw_title();
-set_dirty();
-clear_eol();
+int vis_col();
+void draw_title();
+void set_dirty();
+void clear_eol();
 /* Word movement utilities */
-is_word_char();
-fdwd_start();
-fdwd_end();
+int is_word_char();
+int fdwd_start();
+int fdwd_end();
 /* Selection utilities */
-start_sel();
-clr_sel();
-sel_active();
-search_keys();
+void start_sel();
+void clr_sel();
+int sel_active();
+void smart_sel_update();
+void search_keys();
 /* Gap Buffer Functions */
-init_gap();
-init_line_cache();
+void init_gap();
 char gap_char_at();
-move_gap_to();
-ensure_gap_at_cursor();
-gap_has_space();
-gap_size();
-set_curs();
+void move_gap_to();
+void ensure_gap_at_cursor();
+int gap_has_space();
+int gap_size();
+void set_curs();
 /* Fast display routines */
-fast_show();
-fast_curs();
-fast_scr();
-fast_upd();
-fast_char_upd();
-upd_fast();
-fast_from_pos();
-fast_line();
-init_caches();
-get_top_pos();
-visln_pre();
-visln_next();
-visln_sta();
-redraw_char_at_screen_pos();
-write_pos();
-calc_end_col();
+void fast_show();
+void fast_curs();
+void fast_scr();
+void fast_upd();
+void fast_char_upd();
+void upd_fast();
+void fast_from_pos();
+void fast_line();
+void init_caches();
+int get_top_pos();
+int visln_pre();
+int visln_next();
+int visln_sta();
+void redraw_char_at_screen_pos();
+void write_pos();
+int calc_end_col();
+int calc_tab_width();
+void write_str();
+void show_help();
+void hide_help();
+void copy_gap_selection_to_clipboard();
+void cleanup_clipboard();
+void draw_range();
 
 /* Main program */
-main(argc, argv)
+int main(argc, argv)
 int argc;
 char *argv[];
 {
@@ -626,14 +636,14 @@ char *argv[];
 
 
 /* Initialize gap buffer */
-init_gap()
+void init_gap()
 {
     buf.gap_start = 0;
     buf.gap_end = BUF_SIZE;          /* Entire buffer is gap initially */
     buf.text_length = 0;
 }
 
-init_caches()
+void init_caches()
 {
     buf.ccurs_ln = 0;
     buf.topscr_pos = 0;
@@ -645,7 +655,7 @@ init_caches()
 /* Gap-aware write function */
 
 
-write_gap_block(path, start_pos, len)
+int write_gap_block(path, start_pos, len)
 int path, start_pos, len;
 {
     int end_pos;
@@ -685,7 +695,7 @@ int path, start_pos, len;
     }
 }
 
-redraw_char_at_screen_pos(col, row, buffer_pos)
+void redraw_char_at_screen_pos(col, row, buffer_pos)
 int col, row, buffer_pos;
 {
     char ch;
@@ -719,17 +729,17 @@ int col, row, buffer_pos;
 }
 
 /* Build XY position sequence and write it */
-write_pos(col, row)
+void write_pos(col, row)
 int col, row;
 {
     POS_BUF[0] = 0x02;
-    POS_BUF[1] = col + 0x20;
-    POS_BUF[2] = row + 0x20;
+    POS_BUF[1] = (char)(col + 0x20);
+    POS_BUF[2] = (char)(row + 0x20);
     write_block(1, POS_BUF, 3);
 }
 
 /* Get top screen position - always valid in buffer position system */
-get_top_pos()
+int get_top_pos()
 {
     return buf.topscr_pos;
 }
@@ -752,7 +762,7 @@ int pos;
 }
 
 /* Move gap to specified position */
-move_gap_to(target_pos)
+void move_gap_to(target_pos)
 int target_pos;
 {
     int gap_size, move_count, i;
@@ -798,19 +808,19 @@ int target_pos;
 }
 
 /* Ensure gap is at cursor position (for efficient editing) */
-ensure_gap_at_cursor()
+void ensure_gap_at_cursor()
 {
     move_gap_to(buf.cursor_pos);
 }
 
 /* Check if gap has space for insertion */
-gap_has_space()
+int gap_has_space()
 {
     return (buf.gap_start < buf.gap_end);
 }
 
 /* Get current gap size */
-gap_size()
+int gap_size()
 {
     return buf.gap_end - buf.gap_start;
 }
@@ -851,7 +861,7 @@ _map_done:
 }
 
 /* Unmap blocks */
-unmap_blocks(addr, num_blocks)
+void unmap_blocks(addr, num_blocks)
 char *addr;
 int num_blocks;
 {
@@ -863,7 +873,7 @@ int num_blocks;
 }
 
 /* Free RAM blocks */
-free_ram_blocks(start_block, num_blocks)
+void free_ram_blocks(start_block, num_blocks)
 int start_block, num_blocks;
 {
 #asm
@@ -874,7 +884,7 @@ int start_block, num_blocks;
 }
 
 /* Add this function after the system call wrappers */
-init_clipboard()
+int init_clipboard()
 {
     clipboard.initialized = 0;
     clipboard.data_length = 0;
@@ -901,7 +911,7 @@ init_clipboard()
 }
 
 /* Add this function after init_clipboard() */
-copy_gap_selection_to_clipboard(sel_len)
+void copy_gap_selection_to_clipboard(sel_len)
 int sel_len;
 {
     if (buf.select_start < buf.gap_start) {
@@ -927,7 +937,7 @@ int sel_len;
     }
 }
 
-cleanup_clipboard()
+void cleanup_clipboard()
 {
     if (clipboard.initialized && clipboard.mapped_addr != NULL) {
         unmap_blocks(clipboard.mapped_addr, 1);
@@ -937,7 +947,7 @@ cleanup_clipboard()
 }
 
 /* Initialize enhanced editor */
-init_ed()
+void init_ed()
 {
     int i;
     
@@ -946,7 +956,7 @@ init_ed()
         ((char*)&buf)[i] = 0;
     }
 
-    buf.text_storage = malloc(BUF_SIZE);
+    buf.text_storage = (char *)malloc(BUF_SIZE);
     if (buf.text_storage == NULL) {
         printf("Fatal: Cannot allocate text buffer\n");
         exit(1);
@@ -1033,7 +1043,7 @@ init_ed()
 }
 
 /* Count total logical lines in buffer - called after major changes */
-recount_total_lines()
+void recount_total_lines()
 {
     int i;
     int line_count;
@@ -1050,7 +1060,7 @@ recount_total_lines()
 }
 
 /* Set a temporary status message that clears on next keystroke */
-set_temp_status(msg)
+void set_temp_status(msg)
 char *msg;
 {
     strcpy(status_msg, msg);
@@ -1059,7 +1069,7 @@ char *msg;
 }
 
 /* File operations - unchanged from working version */
-load_file(filename)
+int load_file(filename)
 char *filename;
 {
     FILE *fp;
@@ -1086,7 +1096,7 @@ char *filename;
         }
         
         /* Insert character into gap */
-        *(text_ptr + buf.gap_start) = ch;
+        *(text_ptr + buf.gap_start) = (char)ch;
         buf.gap_start++;
         buf.cursor_pos++;
         buf.text_length++;
@@ -1125,7 +1135,7 @@ char *filename;
     return 0;
 }
 
-save_file()
+int save_file()
 {
     FILE *fp;
     int i;
@@ -1159,7 +1169,7 @@ save_file()
 }
 
 /* ENHANCED MAIN LOOP with advanced key combinations */
-main_loop()
+void main_loop()
 {
     int key, key_status, key_char;
     
@@ -1477,7 +1487,7 @@ main_loop()
 /* ENHANCED MOVEMENT FUNCTIONS WITH SOFT WRAP SUPPORT */
 
 /* Helper: Advance column by one character, handling tabs */
-col_adv(col, ch)
+int col_adv(col, ch)
 int col;
 char ch;
 {
@@ -1488,7 +1498,7 @@ char ch;
 }
 
 /* Helper: Find where visual line ends from start position */
-find_end(start)
+int find_end(start)
 int start;
 {
     int pos, col;
@@ -1507,7 +1517,7 @@ int start;
 }
 
 /* Helper: Find position at target column on visual line */
-pos_col(start, tgt_col, line_end)
+int pos_col(start, tgt_col, line_end)
 int start, tgt_col, line_end;
 {
     int pos, col;
@@ -1525,7 +1535,7 @@ int start, tgt_col, line_end;
 }
 
 /* Ultra-simple move_up using visln_pre() */
-move_up()
+void move_up()
 {
     int target, ch;
     int line_end;
@@ -1561,7 +1571,7 @@ move_up()
     log_row--;
 }
 
-move_down()
+void move_down()
 {
     int target, ch;
     int line_end;
@@ -1598,21 +1608,21 @@ move_down()
     log_row++;
 }
 
-move_left()
+void move_left()
 {
     if (buf.cursor_pos > 0) {
         curs_lft();
     }
 }
 
-move_right()
+void move_right()
 {
     if (buf.cursor_pos < buf.text_length) {
         curs_rgt();
     }
 }
 
-set_curs(new_pos)
+void set_curs(new_pos)
 int new_pos;
 {
     int old_pos, i;
@@ -1646,7 +1656,7 @@ int new_pos;
 
 /* Calculate column position for a given buffer position */
 /* Returns the column (0-79) where the cursor would be at this position */
-calc_col(pos)
+int calc_col(pos)
 int pos;
 {
     int col, i;
@@ -1674,7 +1684,7 @@ int pos;
 }
 
 /* Update cursor position moving left with proper screen coordinate tracking */
-curs_lft()
+void curs_lft()
 {
     char prev_char;
     int old_log_row;
@@ -1713,7 +1723,7 @@ curs_lft()
 }
 
 /* Update cursor position moving right with proper screen coordinate tracking */
-curs_rgt()
+void curs_rgt()
 {
     char curr_char;
     
@@ -1741,7 +1751,7 @@ curs_rgt()
 }
 
 /* Enhanced status line with right-aligned position info */
-draw_stat()
+void draw_stat()
 {
     static char cached_status_msg[80] = "";
     static int stinit = 0;  /* Renamed from status_msg_initialized to avoid 8-char conflict */
@@ -1888,8 +1898,8 @@ draw_stat()
 
 /* Help command data structure */
 struct HelpCmd {
-    char *full;     /* Full format for tall screens */
-    char *compact;  /* Compact format for short screens */
+    const char *full;     /* Full format for tall screens */
+    const char *compact;  /* Compact format for short screens */
     char cat;       /* Category: 'F', 'E', 'S', 'C', 'N', 'D', or 'H' for header */
 };
 
@@ -1945,14 +1955,14 @@ struct HelpCmd help_table[] = {
 };
 
 /* Helper to write string using write_block */
-write_str(s)
-char *s;
+void write_str(s)
+const char *s;
 {
-    write_block(1, s, strlen(s));
+    write_block(1, (char *)s, strlen(s));
 }
 
 /* Display full-screen help overlay - adapts to screen size */
-show_help()
+void show_help()
 {
     int i;
     
@@ -2003,7 +2013,7 @@ show_help()
     } else {
         /* Compact format for short screens (80x30, 80x24, 40x30) */
         int first_in_cat;
-        char *cat_name;
+        const char *cat_name;
         int cat_len;
         int spaces_needed;
         int j;
@@ -2052,7 +2062,7 @@ show_help()
 }
 
 /* Hide help and return to editor */
-hide_help()
+void hide_help()
 {
     in_help_mode = 0;
     need_full_redraw = 1;
@@ -2062,7 +2072,7 @@ hide_help()
 /* Text Selection Functions */
 
 /* Start selection at current cursor */
-start_sel()
+void start_sel()
 {
     if (!buf.selecting) {
         buf.selecting = 1;
@@ -2073,7 +2083,7 @@ start_sel()
 }
 
 /* Clear selection */
-clr_sel()
+void clr_sel()
 {
     if (buf.selecting) {
         buf.selecting = 0;
@@ -2084,7 +2094,7 @@ clr_sel()
     }
 }
 
-smart_sel_update()
+void smart_sel_update()
 {
     int anchor = buf.selection_anchor;
     int cursor = buf.cursor_pos;
@@ -2116,7 +2126,7 @@ smart_sel_update()
 
 
 /* Check if selection is active and valid */
-sel_active()
+int sel_active()
 {
     return (buf.selecting && buf.select_start >= 0 && 
             buf.select_end > buf.select_start);
@@ -2125,7 +2135,7 @@ sel_active()
 /* Selection movement functions with screen coordinate updates */
 
 /* Extend selection left - fixed to use proper cursor management */
-ex_left()
+void ex_left()
 {
   int old_pos;
   int old_col;
@@ -2165,7 +2175,7 @@ ex_left()
 }
 
 /* Extend selection right - fixed to use proper cursor management */
-ex_right()
+void ex_right()
 {
   int old_pos;
   int old_col;
@@ -2205,7 +2215,7 @@ ex_right()
 }
 
 /* Extend selection up */
-ex_up()
+void ex_up()
 {
     if (!buf.selecting) start_sel();
     move_up();
@@ -2215,7 +2225,7 @@ ex_up()
 }
 
 /* Extend selection down */
-ex_down()
+void ex_down()
 {
     if (!buf.selecting) start_sel();
     move_down();
@@ -2225,7 +2235,7 @@ ex_down()
 }
 
 /* Extend selection word left */
-ex_wd_left()
+void ex_wd_left()
 {
     if (!buf.selecting) start_sel();
     word_left();  /* Use existing word movement function */
@@ -2235,7 +2245,7 @@ ex_wd_left()
 }
 
 /* Extend selection word right */
-ex_wd_right()
+void ex_wd_right()
 {
     if (!buf.selecting) start_sel();
     word_right(); /* Use existing word movement function */
@@ -2245,7 +2255,7 @@ ex_wd_right()
 }
 
 /* Select all text */
-sel_all()
+void sel_all()
 {
     buf.selecting = 1;
     buf.selection_anchor = 0;
@@ -2257,7 +2267,7 @@ sel_all()
 }
 
 /* Delete selected text using gap buffer operations */
-del_sel()
+void del_sel()
 {
     int del_len;
     
@@ -2310,7 +2320,7 @@ del_sel()
 }
 
 /* Replace the existing copy_sel() function around line 1200 */
-copy_sel()
+void copy_sel()
 {
     int sel_len;
     
@@ -2344,7 +2354,7 @@ copy_sel()
 }
 
 /* Add this new function after copy_sel() */
-paste_clipboard()
+void paste_clipboard()
 {
     int i;
     
@@ -2392,7 +2402,7 @@ paste_clipboard()
 /* Word Movement Functions */
 
 /* Check if character is part of a word */
-is_word_char(ch)
+int is_word_char(ch)
 char ch;
 {
     return ((ch >= 'a' && ch <= 'z') || 
@@ -2402,7 +2412,7 @@ char ch;
 }
 
 /* Find start of current word */
-fdwd_start(pos)
+int fdwd_start(pos)
 int pos;
 {
     /* Skip non-word chars backwards */
@@ -2419,7 +2429,7 @@ int pos;
 }
 
 /* Find end of current word */
-fdwd_end(pos)
+int fdwd_end(pos)
 int pos;
 {
     /* Skip non-word chars forward */
@@ -2436,7 +2446,7 @@ int pos;
 }
 
 /* Move cursor to start of previous word */
-word_left()
+void word_left()
 {
     int new_pos;
     
@@ -2461,7 +2471,7 @@ word_left()
 }
 
 /* Move cursor to start of next word */
-word_right()
+void word_right()
 {
     int new_pos;
     
@@ -2482,7 +2492,7 @@ word_right()
 }
 
 /* Helper function to position cursor at same relative screen position */
-page_curs(new_screen_top)
+void page_curs(new_screen_top)
 int new_screen_top;
 {
     int i, relative_row, target_pos, next_pos;
@@ -2512,7 +2522,7 @@ int new_screen_top;
 }
 
 /* Simplified page_up using helper */
-page_up()
+void page_up()
 {
     int i, new_top_pos, lines_to_scroll, prev_pos;
     int original_top_pos;
@@ -2551,7 +2561,7 @@ page_up()
 }
 
 /* Simplified page_down using helper */
-page_down()
+void page_down()
 {
     int i, new_top_pos, lines_to_scroll, next_pos;
     int last_line_start, max_reasonable_top;
@@ -2588,7 +2598,7 @@ page_down()
 /* Search Functions */
 
 /* Start search mode */
-strtsch()
+void strtsch()
 {
     in_search_mode = 1;
     temp_search_str[0] = 0;
@@ -2598,7 +2608,7 @@ strtsch()
 }
 
 /* End search mode */
-end_search()
+void end_search()
 {
     in_search_mode = 0;
     in_find_mode = 0;
@@ -2609,7 +2619,7 @@ end_search()
 }
 
 /* Handle search mode keys */
-search_keys(key)
+void search_keys(key)
 int key;
 {
     int len;
@@ -2641,7 +2651,7 @@ int key;
     } else if (key >= 32 && key < 127) {
         len = strlen(temp_search_str);
         if (len < MAX_SEARCH - 1) {
-            temp_search_str[len] = key;
+            temp_search_str[len] = (char)key;
             temp_search_str[len + 1] = 0;
             sprintf(status_msg, "Find: %s", temp_search_str);
         }
@@ -2649,7 +2659,7 @@ int key;
 }
 
 /* Find next occurrence */
-find_next()
+void find_next()
 {
     int i, j, match, search_len;
     int screen_pos, vis_lines, screen_height, is_visible;
@@ -2728,7 +2738,7 @@ find_next()
 /* Goto Line Functions */
 
 /* Start goto line mode */
-start_goto()
+void start_goto()
 {
     in_goto_mode = 1;
     goto_line_str[0] = 0;  /* Clear line number string */
@@ -2737,7 +2747,7 @@ start_goto()
 }
 
 /* End goto line mode */
-end_goto()
+void end_goto()
 {
     in_goto_mode = 0;
     strcpy(status_msg, "Goto cancelled");
@@ -2745,7 +2755,7 @@ end_goto()
 }
 
 /* Handle goto mode keys */
-goto_keys(key)
+void goto_keys(key)
 int key;
 {
     int len, line_num;
@@ -2774,7 +2784,7 @@ int key;
     } else if (key >= '0' && key <= '9') {  /* Only digits */
         len = strlen(goto_line_str);
         if (len < 7) {  /* Max 7 digits (9999999) */
-            goto_line_str[len] = key;
+            goto_line_str[len] = (char)key;
             goto_line_str[len + 1] = 0;
             sprintf(status_msg, "Goto line: %s", goto_line_str);
         }
@@ -2782,7 +2792,7 @@ int key;
 }
 
 /* Utility functions */
-get_line(pos)
+int get_line(pos)
 int pos;
 {
    int i, line;
@@ -2796,7 +2806,7 @@ int pos;
     return line;
 }
 
-line_sta(pos)
+int line_sta(pos)
 int pos;
 {
   while (pos > 0 && !IS_LINE_END(gap_char_at(pos - 1))) {
@@ -2805,7 +2815,7 @@ int pos;
     return pos;
 }
 
-line_end(pos)
+int line_end(pos)
 int pos;
 {
    while (pos < buf.text_length && !IS_LINE_END(gap_char_at(pos))) {
@@ -2814,7 +2824,7 @@ int pos;
     return pos;
 }
 
-vis_col(ln_start, pos)
+int vis_col(ln_start, pos)
 int ln_start, pos;
 {
   int col, i;
@@ -2833,7 +2843,7 @@ int ln_start, pos;
     return col;
 }
 
-do_char(ch)
+void do_char(ch)
 int ch;
 {
 
@@ -2850,10 +2860,10 @@ int ch;
     return;
   }
     
-  add_undo(buf.cursor_pos, 0, ch);
+  add_undo(buf.cursor_pos, 0, (char)ch);
     
   /* Insert character */
-  *(text_ptr + buf.gap_start) = ch;
+  *(text_ptr + buf.gap_start) = (char)ch;
   buf.gap_start++;
   buf.cursor_pos++;
   buf.text_length++;
@@ -2915,7 +2925,7 @@ int ch;
   need_status_update = 1;
 }
 
-do_back()
+void do_back()
 {
      char deleted_char;
      int old_end_col;
@@ -3004,7 +3014,7 @@ do_back()
 }
 
 /* Regular enter now inserts CR ($0D) */
-do_cr_enter()
+void do_cr_enter()
 {
     /* (1) Insert the CR character */
     ensure_gap_at_cursor();
@@ -3041,7 +3051,7 @@ do_cr_enter()
 }
 
 /* Function to insert LF ($0A) for Shift+Enter */
-do_lf_enter()
+void do_lf_enter()
 {
     /* (1) Insert the LF character */
     ensure_gap_at_cursor();
@@ -3080,7 +3090,7 @@ do_lf_enter()
 }
 
 /* Ensure cursor is visible on screen, scroll if necessary */
-ensure_vis()
+void ensure_vis()
 {
     int screen_pos, vis_lines, screen_height, is_visible;
     int i, j;
@@ -3114,7 +3124,7 @@ ensure_vis()
     }
 }
 
-goto_ln(line)
+void goto_ln(line)
 int line;
 {
     int i, j, current_line;
@@ -3164,13 +3174,13 @@ int line;
     }
 }
 
-clear_eol(from_col, row)
+void clear_eol(from_col, row)
 int from_col, row;
 {
     putchar(0x04);
 }
 
-add_undo(pos, action, ch)
+void add_undo(pos, action, ch)
 int pos, action;
 char ch;
 {
@@ -3199,7 +3209,7 @@ char ch;
     }
 }
 
-do_undo()
+void do_undo()
 {
     struct UndoEntry *entry;
     int i;
@@ -3249,7 +3259,7 @@ do_undo()
  * row: starting row on screen
  * col: starting column on screen
  */
-draw_range(from_pos, stop_type, row, col)
+void draw_range(from_pos, stop_type, row, col)
 int from_pos, stop_type, row, col;
 {
     int i, chunk_start, stop_pos;
@@ -3497,7 +3507,7 @@ int from_pos, stop_type, row, col;
 }
 
 /* Replace fast_show() */
-fast_show()
+void fast_show()
 {
     write_block(1, HIDE_CURSOR, 2);
     draw_range(buf.topscr_pos, -2, text_start_row, 0);
@@ -3505,7 +3515,7 @@ fast_show()
 }
 
 /* Replace fast_line() */  
-fast_line(from_pos)
+void fast_line(from_pos)
 int from_pos;
 {
     int row, col, i, vis_start;
@@ -3572,7 +3582,7 @@ int from_pos;
 }
 
 /* Replace fast_from_pos() */
-fast_from_pos(from_pos)  
+void fast_from_pos(from_pos)  
 int from_pos;
 {
     int row, col, i, vis_start;
@@ -3633,7 +3643,7 @@ int from_pos;
 }
 
 /* Fast cursor positioning - just count to cursor and track position */
-fast_curs()
+void fast_curs()
 {
     int start_pos, i, row, col;
     char ch;
@@ -3687,7 +3697,7 @@ fast_curs()
 }
 
 /* Redraw just the title bar - used when dirty flag changes */
-draw_title()
+void draw_title()
 {
     int len1, lenf, i, j;
     char linebuffer[81];
@@ -3740,7 +3750,7 @@ draw_title()
 }
 
 /* Set dirty flag and update title bar if it changed */
-set_dirty(new_value)
+void set_dirty(new_value)
 int new_value;
 {
     if (buf.dirty != new_value) {
@@ -3750,7 +3760,7 @@ int new_value;
 }
 
 /* Fast setup screen */
-fast_scr()
+void fast_scr()
 {
 
    int len1;
@@ -3823,7 +3833,7 @@ fast_scr()
 }
 
 /* Fast minimal update - just redraw from changed position */
-fast_upd(from_pos)
+void fast_upd(from_pos)
 int from_pos;
 {
     /* Use efficient single line update with caching */
@@ -3831,7 +3841,7 @@ int from_pos;
 }
 
 /* Fast single character or simple line update - no selection handling needed */
-fast_char_upd(from_pos)
+void fast_char_upd(from_pos)
 int from_pos;
 {
     int row, col, i, chunk_start;
@@ -3929,7 +3939,7 @@ int from_pos;
 }
 
 /* Enhanced upd_fast() with auto-scroll coordination */
-upd_fast()
+void upd_fast()
 {
     static int update_in_progress = 0;
     int scroll_occurred = 0;
@@ -4037,7 +4047,7 @@ upd_fast()
 
 
 /* Find start of next visual line from given buffer position */
-visln_next(start_pos)
+int visln_next(start_pos)
 int start_pos;
 {
   int pos = visln_sta(start_pos);
@@ -4071,7 +4081,7 @@ int start_pos;
 }
 
 /* Find start of previous visual line from given buffer position */
-visln_pre(start_pos)
+int visln_pre(start_pos)
 int start_pos;
 {
     int pos, prev_pos, newline_count, col, scan_pos;
@@ -4130,7 +4140,7 @@ int start_pos;
     return prev_pos;  /* Return the previous visual line start */
 }
 
-visln_sta(pos)
+int visln_sta(pos)
 int pos;
 {
     int ln_start, scan_pos, col;
@@ -4176,13 +4186,13 @@ int pos;
 /* Calculate visual column of end of current line from cursor position */
 
 /* Calculate visual width of a tab at given column position */
-calc_tab_width(col)
+int calc_tab_width(col)
 int col;
 {
     return tab_wdth - TAB_MOD(col);
 }
 
-calc_end_col()
+int calc_end_col()
 {
     int pos, col;
     char ch;
