@@ -53,6 +53,8 @@ ESC             Clear selection
 
 ### Compiling:
 
+DCC (See CMOC branch if compiling with CMOC):
+
 te is written in C, and compiled with dcc.  Compile with:
 
 dcc te.c -m=2k
@@ -63,10 +65,8 @@ on some systems you may need to do this:
 
 env -u LD_PRELOAD dcc te.c -m=2k
 
-To build with CMOC see the CMOC branch which has its own makefile and changes for CMOC.
-
-
-
 for Color Computer 3: env -u LD_PRELOAD dcc te.c -m=2k -dcoco3
 
 NOTE: It won't work on the Color Computer 3 without a change to vtio.asm to buffer the kysns keys.
+
+CMOC: To build with CMOC see the CMOC branch which has its own makefile and changes for CMOC.
