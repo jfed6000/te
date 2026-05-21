@@ -64,3 +64,5 @@ on some systems you may need to do this:
 env -u LD_PRELOAD dcc te.c -m=2k
 
 for Color Computer 3: env -u LD_PRELOAD dcc te.c -m=2k -dcoco3
+
+NOTE: It won't work on the Color Computer 3 without a change to vtio.asm to buffer the kysns keys.
